@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>qml/AddConnectionPage.qml</file>
+        <file>qml/ConnectionsPage.qml</file>
+        <file>qml/EditingEthernetPage.qml</file>
+    </qresource>
+</RCC>
