@@ -70,6 +70,9 @@ public slots:
      */
     void updateConnection(NetworkManager::Connection::Ptr connection, const NMVariantMapMap &map);
 
+    // load details, initialize, type, ipv4 widget
+    void setConnection(const NetworkManager::ConnectionSettings::Ptr &connection);
+
 Q_SIGNALS:
     void connectionsChanged();
 
