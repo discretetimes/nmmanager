@@ -22,8 +22,8 @@ private:
     NetworkModel *m_networkModel;
     // QString m_currentConnectionPath;
     QString m_currentConnectionPath;
-
     NetworkManager::Connection::Ptr connectionFromArgs(const QVariantList &args) const;
+    QList<NetworkManager::Connection::Ptr> m_connections;
 };
 
 #endif

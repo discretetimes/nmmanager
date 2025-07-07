@@ -55,7 +55,7 @@ Page {
                 onClicked: {
                     var selectedUuid = networkListView.model.get(networkListView.currentIndex).uuid;
                     // stackView.push("EditingEthernetPage.qml", { "connectionUuid": selectedUuid })
-                    stackView.push("EditIpAddressPage.qml", { "connectionUuid": selectedUuid })
+                    stackView.push("EditEthernetPage.qml", { "connectionUuid": selectedUuid })
                 }
             }
             Button {

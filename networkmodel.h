@@ -46,6 +46,8 @@ public:
 
     Qt::ItemFlags flags(const QModelIndex& index) const override;
 
+    Q_INVOKABLE QVariantMap get(int row);
+
     // new functions
     void refresh();
     void addConnection(NMConnection *connection);

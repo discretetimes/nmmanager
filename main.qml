@@ -11,7 +11,6 @@ ApplicationWindow {
     StackView {
         id: stackView
         anchors.fill: parent
-        initialItem: "ConnectionsPage.qml"
+        initialItem: "qml/ConnectionsPage.qml"
     }
 }
-

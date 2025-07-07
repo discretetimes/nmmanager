@@ -74,3 +74,15 @@ NetworkManager::Connection::Ptr NmManager::connectionFromArgs (const QVariantLis
         }
         return nullptr;
 }
+
+// QVariantMap NmManager::get(int row)
+// {
+//     if (row < 0 || row >= m_connections.count())
+//         return QVariantMap();
+//
+//     QVariantMap res;
+//     const auto &connection = m_connections.at(row);
+//     res["name"] = connection->name();
+//     res["uuid"] = connection->uuid();
+//     return res;
+// }

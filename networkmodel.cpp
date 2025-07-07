@@ -1,5 +1,12 @@
 #include "networkmodel.h"
 
+#include <NetworkManagerQt/Connection>
+#include <NetworkManagerQt/ConnectionSettings>
+#include <NetworkManagerQt/Ipv4Setting>
+#include <NetworkManagerQt/Settings>
+#include <NetworkManagerQt/Utils>
+#include <NetworkManagerQt/WiredSetting>
+
 #include <QDBusError>
 #include <QDBusMetaType>
 #include <QDBusPendingReply>
@@ -209,6 +216,34 @@ void NetworkModel::setConnection(const NetworkManager::ConnectionSettings::Ptr& 
 {
     QVariantMap details;
     details["name"] = connection->name();
+    NetworkManager::WiredSetting::Ptr wiredSetting = connection->setting(NetworkManager::Setting::Wired).dynamicCast<NetworkManager::WiredSetting>();
+    // if (wiredSetting) {
+    //     details["device"] = wiredSetting->device();
+    // }
+
+    NetworkManager::Ipv4Setting::Ptr ipv4Setting = connection->setting(NetworkManager::Setting::Ipv4).dynamicCast<NetworkManager::Ipv4Setting>();
+    if (ipv4Setting) {
+        QVariantMap ipv4Details;
+        ipv4Details["method"] = ipv4Setting->method();
+        // You would need to properly handle addresses, as they are a list of Address objects
+        // This is a simplified example
+        // if (!ipv4Setting->addresses().isEmpty()) {
+        //     ipv4Details["address"] = ipv4Setting->addresses().first().address();
+        // }
+        // details["ipv4"] = ipv4Details;
+    }
+}
+
+QVariantMap NetworkModel::get(int row)
+{
+    if (row < 0 || row >= m_connections.count())
+        return QVariantMap();
+
+    QVariantMap res;
+    const auto &connection = m_connections.at(row);
+    res["name"] = connection->name();
+    res["uuid"] = connection->uuid();
+    return res;
 }
 
 
