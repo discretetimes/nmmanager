@@ -47,6 +47,7 @@ public:
     Qt::ItemFlags flags(const QModelIndex& index) const override;
 
     Q_INVOKABLE QVariantMap get(int row);
+    Q_INVOKABLE QVariantMap getConnectionDetails(const QString &uuid);
 
     // new functions
     void refresh();
@@ -70,7 +71,8 @@ public slots:
      * @connection - connection which should be updated
      * @map - NMVariantMapMap with new connection settings
      */
-    void updateConnection(NetworkManager::Connection::Ptr connection, const NMVariantMapMap &map);
+    void updateConnection(const QString &uuid, const QVariantMap &settings);
+    // void updateConnection(NetworkManager::Connection::Ptr connection, const NMVariantMapMap &map);
 
     // load details, initialize, type, ipv4 widget
     void setConnection(const NetworkManager::ConnectionSettings::Ptr &connection);
@@ -84,6 +86,8 @@ private:
     QString m_tmpConnectionUuid;
     QString m_tmpDevicePath;
     // QString m_tmpSpecificPath;
+
+    NetworkManager::Connection::Ptr connectionFromArgs(const QVariantList &args) const;
 
     QList<NetworkManager::Connection::Ptr> m_connections;
 };

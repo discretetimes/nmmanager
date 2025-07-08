@@ -206,10 +206,52 @@ void NetworkModel::removeConnectionInternal(const QString &connection)
     }
 }
 
-void NetworkModel::updateConnection(NetworkManager::Connection::Ptr connection, const NMVariantMapMap &map)
+// void NetworkModel::updateConnection(const QString &connectionUuid, const QVariantMap &map)
+// {
+//         // connection->update(map);
+//     QVariantList args;
+//     args << "Uuid=" + connectionUuid;
+//     NetworkManager::Connection::Ptr connection = connectionFromArgs(args);
+//     QDBusReply<void> reply = connection->update(map);
+// }
+
+void NetworkModel::updateConnection(const QString &uuid, const QVariantMap &settings)
 {
-        // connection->update(map);
-    QDBusReply<void> reply = connection->update(map);
+    NetworkManager::Connection::Ptr connection = NetworkManager::findConnectionByUuid(uuid);
+    if (!connection) {
+        qWarning() << "Could not find connection with UUID:" << uuid;
+        return;
+    }
+
+    ConnectionSettings::Ptr m_settings = connection->settings();
+
+    NMVariantMapMap newSettingsMap;
+
+    // 1. Build the 'connection' settings map
+    QVariantMap connectionSettings;
+    connectionSettings["id"] = m_settings->name();
+    connectionSettings["uuid"] = uuid; // Use the existing UUID
+    connectionSettings["type"] = "802-3-ethernet";
+    newSettingsMap["connection"] = connectionSettings;
+
+    // 2. Build the '802-3-ethernet' (wired) settings map
+    // QVariantMap wiredSettings;
+    // wiredSettings["device"] = settings["device"].toString();
+    // newSettingsMap["802-3-ethernet"] = wiredSettings;
+
+    // 3. Build the 'ipv4' settings map
+    QVariantMap ipv4Settings;
+    if (settings["ipv4Method"].toString() == "Manual") {
+        ipv4Settings["method"] = "manual";
+        ipv4Settings["addresses"] = QVariant::fromValue(QVariantList{settings["ipv4Address"].toString()});
+    } else {
+        ipv4Settings["method"] = "auto";
+    }
+    newSettingsMap["ipv4"] = ipv4Settings;
+
+    QDBusReply<void> reply = connection->update(newSettingsMap);
+    qInfo() << "Update settings: " << reply.error().message();
+    // m_networkModel->updateConnection(connection, newSettingsMap);
 }
 
 void NetworkModel::setConnection(const NetworkManager::ConnectionSettings::Ptr& connection)
@@ -246,4 +288,49 @@ QVariantMap NetworkModel::get(int row)
     return res;
 }
 
+QVariantMap NetworkModel::getConnectionDetails(const QString &uuid)
+{
+    QVariantMap details;
+    for (const auto &conn : m_connections) {
+        if (conn->uuid() == uuid) {
+            details["name"] = conn->name();
+            details["uuid"] = conn->uuid();
+            details["type"] = conn->settings()->connectionType();
+
+            // Add more details as needed
+            Ipv4Setting::Ptr ipv4Setting = conn->settings()->setting(Setting::Ipv4).dynamicCast<Ipv4Setting>();
+            if (ipv4Setting) {
+                details["ipv4Method"] = ipv4Setting->method();
+                qInfo() << "Method" << ipv4Setting->method();
+                QList<IpAddress> addresses = ipv4Setting->addresses();
+                QStringList addrStrings;
+                for(const auto& addr : addresses) {
+                    addrStrings.append(addr.ip().toString() + "/" + QString::number(addr.prefixLength()));
+                }
+                details["addresses"] = addrStrings;
+            }
+            return details;
+        }
+    }
+    return details; // Return empty map if not found
+}
+
+NetworkManager::Connection::Ptr NetworkModel::connectionFromArgs (const QVariantList &args) const
+{
+    // Parse QVariantList from QML to create connection
+    // Example: Extract name, device, ipv4 settings
+
+    // return NetworkManager::findConnection(args[1].toString()); // connectionPath
+    static const QLatin1String uuidArgumentMarker{"Uuid="};
+    for (QVariant arg : args) {
+        if (arg.canConvert(QMetaType::QString)) {
+            QString uuid = arg.toString();
+            if (uuid.startsWith(uuidArgumentMarker)) {
+                uuid = uuid.replace(uuidArgumentMarker, QString());
+                return NetworkManager::findConnectionByUuid(uuid);
+            }
+        }
+    }
+    return nullptr;
+}
 

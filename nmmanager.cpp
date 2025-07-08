@@ -35,10 +35,23 @@ void NmManager::onRequestCreateConnection(int connectionType)
 //         }
 // }
 
-void NmManager::onSelectedConnectionChanged(const QString &connectionPath)
+// void NmManager::onSelectedConnectionChanged(const QString &connectionPath)
+// {
+//     m_currentConnectionPath = connectionPath;
+//     NetworkManager::Connection::Ptr connection = NetworkManager::findConnection(m_currentConnectionPath);
+//     if (connection) {
+//         NetworkManager::ConnectionSettings::Ptr connectionSettings = connection->settings();
+//         loadConnectionSettings(connectionSettings);
+//     }
+// }
+
+void NmManager::onSelectedConnectionChanged(const QString &connectionUuid)
 {
-    m_currentConnectionPath = connectionPath;
-    NetworkManager::Connection::Ptr connection = NetworkManager::findConnection(m_currentConnectionPath);
+    QVariantList args;
+    args << "Uuid=" + connectionUuid;
+    NetworkManager::Connection::Ptr connection = connectionFromArgs(args);
+    // m_currentConnectionPath = connectionPath;
+    // NetworkManager::Connection::Ptr connection = NetworkManager::findConnection(m_currentConnectionPath);
     if (connection) {
         NetworkManager::ConnectionSettings::Ptr connectionSettings = connection->settings();
         loadConnectionSettings(connectionSettings);

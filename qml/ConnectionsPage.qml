@@ -54,8 +54,12 @@ Page {
                 enabled: networkListView.currentIndex != -1
                 onClicked: {
                     var selectedUuid = networkListView.model.get(networkListView.currentIndex).uuid;
+                    console.info("Clicked on connection with UUID:", selectedUuid)
+                    nmManager.onSelectedConnectionChanged(selectedUuid)
                     // stackView.push("EditingEthernetPage.qml", { "connectionUuid": selectedUuid })
-                    stackView.push("EditEthernetPage.qml", { "connectionUuid": selectedUuid })
+                    // stackView.push("EditEthernetPage.qml", { "connectionUuid": selectedUuid })
+                    // stackView.push("EditingEthernetPage.qml")
+                    stackView.push("EditingEthernetPage.qml", { "connectionUuid": selectedUuid })
                 }
             }
             Button {

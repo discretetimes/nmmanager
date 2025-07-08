@@ -3,93 +3,131 @@ import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 
 Page {
-    id: editingEthernetPage
-    title: "Edit Ethernet Connection"
+    property string connectionUuid
+    property var connectionDetails: ({})
 
-    property alias connectionName: nameField.text
-    property alias device: deviceComboBox.currentText
-    property alias ipv4Method: ipv4MethodComboBox.currentText
-    property alias ipv4Address: ipAddressField.text
+    title: "Edit Addresses for " + (connectionDetails.name || "")
 
-    Connections {
-        target: nmManager
-        function onConnectionLoaded(settings) {
-            nameField.text = settings.name
-            // Assuming 'device' and 'ipv4' settings will be added to the emitted map
-            if (settings.device) {
-                deviceComboBox.currentIndex = deviceComboBox.find(settings.device)
-            }
-            if (settings.ipv4) {
-                ipv4MethodComboBox.currentIndex = ipv4MethodComboBox.find(settings.ipv4.method)
-                ipAddressField.text = settings.ipv4.address
-            }
+    ListModel {
+        id: addressModel
+    }
+
+    Component.onCompleted: {
+        connectionDetails = networkModel.getConnectionDetails(connectionUuid)
+        if (connectionDetails.ipv4Method === 0) {
+            methodComboBox.currentIndex = 0
+        } else {
+            methodComboBox.currentIndex = 1
+        }
+        for (var i = 0; i < connectionDetails.addresses.length; ++i) {
+            addressModel.append({ "address": connectionDetails.addresses[i] })
         }
     }
 
     ColumnLayout {
+        id: mainLayout
         anchors.fill: parent
-        anchors.margins: 20
-        spacing: 20
 
-        Label {
-            text: "Name:"
-            font.bold: true
-        }
-
-        TextField {
-            id: nameField
-            placeholderText: "Enter connection name"
-            Layout.fillWidth: true
-        }
-
-        Label {
-            text: "Ethernet Device:"
-            font.bold: true
-        }
-
+        Label { text: "IPv4 Method:" }
         ComboBox {
-            id: deviceComboBox
-            model: ["eth0", "eth1", "enp2s0"] // Example devices
+            id: methodComboBox
             Layout.fillWidth: true
-        }
-
-        Label {
-            text: "IPv4 Settings:"
-            font.bold: true
-        }
-
-        ComboBox {
-            id: ipv4MethodComboBox
             model: ["Automatic (DHCP)", "Manual"]
-            Layout.fillWidth: true
         }
 
-        TextField {
-            id: ipAddressField
-            placeholderText: "Enter IP address (e.g., 192.168.1.100)"
+        ListView {
+            id: addressListView
             Layout.fillWidth: true
-            visible: ipv4MethodComboBox.currentText === "Manual"
+            Layout.fillHeight: true
+            clip: true
+            model: addressModel
+            currentIndex: -1
+            enabled: methodComboBox.currentIndex === 1
+
+            delegate: ItemDelegate {
+                width: parent.width
+                highlighted: ListView.isCurrentItem
+
+                // --- FIX START: Explicit MouseArea and Focus Handling ---
+                TextField {
+                    id: addressField
+                    anchors.fill: parent
+                    text: model.address
+                    placeholderText: parent.enabled ? "e.g., 192.168.1.100/24" : "Not applicable"
+                    background: null
+                    readOnly: !parent.enabled
+                    // When the user is done typing, update the model
+                    onEditingFinished: {
+                        model.address = text
+                    }
+                }
+
+                // This MouseArea overlays the whole delegate
+                MouseArea {
+                    anchors.fill: parent
+                    // This ensures clicks are not propagated further up,
+                    // which is good practice here.
+                    preventStealing: true
+
+                    onClicked: {
+                        // 1. Set the ListView's current index. This is the key fix.
+                        addressListView.currentIndex = index
+
+                        // 2. Give the TextField focus so the user can type.
+                        addressField.forceActiveFocus()
+                    }
+                }
+                // --- FIX END ---
+            }
         }
 
         RowLayout {
-            Layout.alignment: Qt.AlignRight
-            spacing: 10
-
+            enabled: methodComboBox.currentIndex === 1
             Button {
-                text: "Save"
+                text: qsTr("Add Address")
                 onClicked: {
-                    // Implement save logic here
-                    // You can call a Q_INVOKABLE function on nmManager
+                    addressModel.append({ "address": "" })
                 }
             }
-
             Button {
-                text: "Cancel"
+                text: qsTr("Remove Selected")
+                enabled: addressListView.currentIndex !== -1
                 onClicked: {
-                    // Implement cancel logic here
-                    // For example, close the page
+                    if (addressListView.currentIndex !== -1) {
+                        addressModel.remove(addressListView.currentIndex)
+                    }
                 }
             }
+        }
+    }
+
+    footer: DialogButtonBox {
+        standardButtons: DialogButtonBox.Save | DialogButtonBox.Cancel
+        onAccepted: {
+            var newAddresses = []
+            if(methodComboBox.currentIndex === 1) {
+                for (var i = 0; i < addressModel.count; i++) {
+                    var item = addressModel.get(i)
+                    if (item.address !== "") {
+                        newAddresses.push(item.address)
+                    }
+                }
+            }
+            var newMethod;
+            if (methodComboBox.currentIndex === 0) {
+                newMethod = 0;
+            } else {
+                newMethod = 2;
+            }
+            var newSettings = {
+                "ipv4Method": newMethod,
+                "addresses": newAddresses
+            }
+            networkModel.updateConnection(connectionUuid, newSettings)
+            stackView.pop()
+        }
+        onRejected: {
+            stackView.pop()
         }
     }
 }
