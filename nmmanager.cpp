@@ -9,6 +9,12 @@
 #include <NetworkManagerQt/Utils>
 #include <NetworkManagerQt/WiredSetting>
 
+#include <QDBusError>
+#include <QDBusMetaType>
+#include <QDBusPendingReply>
+#include <QDBusReply>
+#include <QFile>
+
 using namespace NetworkManager;
 
 NmManager::NmManager(QObject* parent)
@@ -16,16 +22,53 @@ NmManager::NmManager(QObject* parent)
 {
 }
 
-void NmManager::onRequestCreateConnection(int connectionType)
+void NmManager::onRequestCreateConnection(const QVariantMap &settings)
 {
-    auto type = static_cast<NetworkManager::ConnectionSettings::ConnectionType>(connectionType);
-    if (type == NetworkManager::ConnectionSettings::Wired){
-        NetworkManager::ConnectionSettings::Ptr connectionSettings;
-        NetworkManager::WiredSetting::Ptr wiredSetting =
-        connectionSettings->setting(NetworkManager::Setting::Wired).dynamicCast<NetworkManager::WiredSetting>();
-        connectionSettings->setUuid(NetworkManager::ConnectionSettings::createNewUuid());
-        addConnection(connectionSettings);
-    }
+    // auto type = static_cast<NetworkManager::ConnectionSettings::ConnectionType>(NetworkManager::ConnectionSettings::Wired);
+    // if (type == NetworkManager::ConnectionSettings::Wired){
+        // NetworkManager::ConnectionSettings::Ptr connectionSettings;
+        ConnectionSettings::Ptr newSettings = ConnectionSettings::Ptr(new ConnectionSettings(ConnectionSettings::Wired));
+
+        // connection settings
+        // default type wired
+        // NetworkManager::WiredSetting::Ptr wiredSetting =
+        // connectionSettings->setting(NetworkManager::Setting::Wired).dynamicCast<NetworkManager::WiredSetting>();
+        // create new uuid
+        qInfo() << "Add settings: " << settings;
+        newSettings->setUuid(NetworkManager::ConnectionSettings::createNewUuid());
+        // create connection name
+        if (settings.contains("name")) {
+            newSettings->setId(settings["name"].toString());
+        }
+        // ipv4 settings
+        Ipv4Setting::Ptr m_ipv4setting = newSettings->setting(Setting::Ipv4).dynamicCast<Ipv4Setting>();
+        m_ipv4setting->setInitialized(true);
+        if (settings.contains("ipv4Method")) {
+            int method = settings["ipv4Method"].toInt();
+            if(method == 0)
+                m_ipv4setting->setMethod(Ipv4Setting::Automatic);
+            else
+                m_ipv4setting->setMethod(Ipv4Setting::Manual);
+        }
+
+        if (settings.contains("addresses")) {
+            QList<IpAddress> addresses;
+            for(const QVariant &addrVariant : settings["addresses"].toList()) {
+                QStringList parts = addrVariant.toString().split('/');
+                if(parts.length() == 2) {
+                    IpAddress address;
+                    address.setIp(QHostAddress(parts[0]));
+                    address.setPrefixLength(parts[1].toUInt());
+                    addresses.append(address);
+                }
+            }
+            m_ipv4setting->setAddresses(addresses);
+        }
+        NMVariantMapMap newSettingsMap = newSettings->toMap();
+        qInfo() << "Add con settings: " << newSettingsMap;
+        QDBusReply<QDBusObjectPath> reply = NetworkManager::addConnection(newSettingsMap);
+        qInfo() << "Add settings results: " << reply.error().message();
+        // NetworkModel->addConnection(newSettingsMap);
 }
 
 // void NmManager::onRequestToChangeConnection(const QString &connectionName, const QString &connectionPath) {
@@ -58,10 +101,10 @@ void NmManager::onSelectedConnectionChanged(const QString &connectionUuid)
     }
 }
 
-void NmManager::addConnection(const NetworkManager::ConnectionSettings::Ptr &settings) {
-        // NMVariantMapMap map = settings->toMap();
-        // m_networkModel->addConnection(map);
-}
+// void NmManager::addConnection(const NetworkManager::ConnectionSettings::Ptr &settings) {
+//         // NMVariantMapMap map = settings->toMap();
+//         // m_networkModel->addConnection(map);
+// }
 
 void NmManager::loadConnectionSettings(const NetworkManager::ConnectionSettings::Ptr &settings) {
     // Emit signal to QML with settings data
@@ -87,6 +130,16 @@ NetworkManager::Connection::Ptr NmManager::connectionFromArgs (const QVariantLis
         }
         return nullptr;
 }
+
+void NmManager::removeConnection(const QString &uuid)
+{
+    // qInfo() << "deleting connection: " << uuid;
+    // NetworkManager::Connection::Ptr con = NetworkManager::findConnection(connection);
+    NetworkManager::Connection::Ptr con = NetworkManager::findConnectionByUuid(uuid);
+    qInfo() << "deleting connection: " << con->name();
+    con->remove();
+}
+
 
 // QVariantMap NmManager::get(int row)
 // {

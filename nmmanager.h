@@ -8,13 +8,20 @@ class NmManager : public QObject {
 public:
     explicit NmManager(QObject *parent = nullptr);
 
-  Q_INVOKABLE void onRequestCreateConnection(int connectionType);
+  // Q_INVOKABLE void onRequestCreateConnection(int connectionType);
+  Q_INVOKABLE void onRequestCreateConnection(const QVariantMap &settings);
   // Q_INVOKABLE void onRequestToChangeConnection(const QString &connectionName, const QString &connectionPath);
   // Q_INVOKABLE void onSelectedConnectionChanged(const QString &connectionPath);
   Q_INVOKABLE void onSelectedConnectionChanged(const QString &connectionUuid);
 
   void addConnection(const NetworkManager::ConnectionSettings::Ptr &settings);
   void loadConnectionSettings(const NetworkManager::ConnectionSettings::Ptr &settings);
+
+  /**
+   * Removes given connection
+   * @connection - d-bus path of the connection you want to edit
+   */
+  Q_INVOKABLE void removeConnection(const QString &uuid);
 
 Q_SIGNALS:
     void connectionLoaded(const QVariantMap &settings);

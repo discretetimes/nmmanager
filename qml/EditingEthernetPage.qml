@@ -54,8 +54,8 @@ Page {
         ComboBox {
             id: methodComboBox
             Layout.fillWidth: true
-            Layout.preferredHeight: 48 // Larger touch target
-            font.pixelSize: 16
+            Layout.preferredHeight: 56 // Larger touch target
+            font.pixelSize: 18
             model: ["Automatic (DHCP)", "Manual"]
 
             background: Rectangle {
@@ -63,6 +63,14 @@ Page {
                 border.color: methodComboBox.activeFocus ? "#0078d7" : "#e0e0e0"
                 border.width: methodComboBox.activeFocus ? 2 : 1
                 radius: 8
+            }
+            contentItem: Text {
+                text: methodComboBox.displayText
+                font: methodComboBox.font
+                color: methodComboBox.enabled ? "black" : "#666666"
+                verticalAlignment: Text.AlignVCenter
+                leftPadding: 12
+                rightPadding: methodComboBox.indicator.width + methodComboBox.spacing
             }
         }
 
@@ -226,7 +234,7 @@ Page {
                 "ipv4Method": methodComboBox.currentIndex === 0 ? 0 : 2,
                 "addresses": newAddresses
             }
-            networkModel.updateConnection(connectionUuid, newSettings)
+            networkModel.updateConnection(newSettings)
             stackView.pop()
         }
 

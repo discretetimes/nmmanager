@@ -52,7 +52,7 @@ public:
 
     // new functions
     void refresh();
-    void addConnection(NMConnection *connection);
+    // void addConnection(NMConnection *connection);
 
     QHash<int, QByteArray> roleNames() const override;
 

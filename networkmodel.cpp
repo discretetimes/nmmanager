@@ -131,8 +131,8 @@ struct AddConnectionData {
 // }
 
 
-void NetworkModel::addConnection(NMConnection *connection)
-{
+// void NetworkModel::addConnection(NMConnection *connection)
+// {
     // NMClient *client = nm_client_new(nullptr, nullptr);
     //
     // AddConnectionData *userData = new AddConnectionData{QString::fromUtf8(nm_connection_get_id(connection)), this};
@@ -146,7 +146,7 @@ void NetworkModel::addConnection(NMConnection *connection)
     //                           add_connection_cb,
     //                           userData);
     // QDBusPendingReply<QDBusObjectPath> reply = NetworkManager::addConnection(newSettings->toMap());
-}
+// }
 
 void NetworkModel::addConnection(const NMVariantMapMap &map)
 {

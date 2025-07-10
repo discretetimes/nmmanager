@@ -91,6 +91,7 @@ Page {
                 // You could show a warning dialog here
                 return;
             }
+            var name;
 
             var newAddresses = []
             if(methodComboBox.currentIndex === 1) {
@@ -108,12 +109,14 @@ Page {
                 newMethod = 2;
             }
             var newSettings = {
+                "name": nameField.text,
                 "ipv4Method": newMethod,
                 "addresses": newAddresses
             }
 
             // Call the new C++ function to create the connection
-            networkModel.createConnection(nameField.text, newSettings)
+            console.log("request create connection")
+            nmManager.onRequestCreateConnection(newSettings)
             stackView.pop()
         }
         onRejected: {

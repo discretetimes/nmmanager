@@ -24,7 +24,7 @@ Page {
             id: networkListView
             Layout.fillWidth: true
             Layout.fillHeight: true
-            model: networkModel
+            model: connectionProxyModel
             currentIndex: -1
             spacing: 8 // Space between list items for touch
             clip: true // Prevent content from spilling outside
@@ -126,8 +126,15 @@ Page {
                 Layout.preferredHeight: 48
                 font.pixelSize: 16
 
+                background: Rectangle {
+                    color: pressed ? "#005bb5" : "#0078d7"
+                    radius: 8
+                }
+
                 onClicked: {
-                    networkModel.remove(networkListView.currentIndex)
+                    var uuid = networkListView.model.get(networkListView.currentIndex).uuid
+                    console.info("connection:", uuid)
+                    nmManager.removeConnection(uuid)
                 }
             }
         }
