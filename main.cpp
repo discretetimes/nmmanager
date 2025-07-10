@@ -11,6 +11,7 @@ int main(int argc, char *argv[]) {
   NmManager nmManager;
   NetworkModel networkModel;
   ConnectionProxyModel connectionProxyModel;
+  connectionProxyModel.setSourceModel(&networkModel);
   engine.rootContext()->setContextProperty("nmManager", &nmManager);
   engine.rootContext()->setContextProperty("networkModel", &networkModel);
   engine.rootContext()->setContextProperty("connectionProxyModel", &connectionProxyModel);

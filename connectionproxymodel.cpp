@@ -24,11 +24,20 @@ bool ConnectionProxyModel::filterAcceptsRow(int source_row, const QModelIndex &s
     //     return false;
     // }
 
-    const NetworkManager::ConnectionSettings::ConnectionType type =
-    (NetworkManager::ConnectionSettings::ConnectionType)sourceModel()->data(index, NetworkModel::TypeRole).toUInt();
+    const NetworkManager::ConnectionSettings::ConnectionType type = (NetworkManager::ConnectionSettings::ConnectionType)sourceModel()->data(index, NetworkModel::TypeRole).toUInt();
+    // qInfo() << "connectionType:" << type << "connectiontype" << NetworkManager::ConnectionSettings::ConnectionType::Wired;
     if (type != NetworkManager::ConnectionSettings::ConnectionType::Wired) {
         return false;
     }
-
+    // QString connectionType = sourceModel()->data(index, NetworkModel::TypeRole).toString();
+    // "Loopback" type 20 in kf6, networkmanager upper version
+    // QString connectionName = sourceModel()->data(index, NetworkModel::NameRole).toString();
+    // if (connectionName == "lo") {
+    //     return false;
+    // }
+    // else {
+    // qInfo() << "connectionType:" << connectionType;
+    // return connectionType == "13";
+    // }
     return QSortFilterProxyModel::filterAcceptsRow(source_row, source_parent);
 }

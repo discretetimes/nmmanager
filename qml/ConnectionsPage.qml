@@ -15,6 +15,9 @@ Page {
     //         networkListView.model = m;
     //     }
     // }
+    // Properties to track selected connection
+    property string currentConnectionUuid: ""
+    // property string currentConnectionName: ""
 
     ColumnLayout {
         anchors.fill: parent
@@ -33,7 +36,9 @@ Page {
                 width: parent.width
                 height: 64 // Larger height for touch targets
                 text: model.name
-                highlighted: ListView.isCurrentItem
+                // highlighted: ListView.isCurrentItem
+                // highlighted: networkListView.currentConnectionUuid === model.uuid
+                highlighted: currentConnectionUuid === model.uuid
 
                 // Customize appearance for touch
                 // contentItem: Text {
@@ -52,7 +57,9 @@ Page {
                 }
 
                 onClicked: {
-                    networkListView.currentIndex = index
+                    // networkListView.currentIndex = index
+                    // networkListView.currentConnectionUuid = model.uuid
+                    currentConnectionUuid = model.uuid
                 }
             }
 
@@ -85,7 +92,8 @@ Page {
 
             Button {
                 text: qsTr("Modify")
-                enabled: networkListView.currentIndex != -1
+                // enabled: networkListView.currentIndex != -1
+                enabled: currentConnectionUuid !== ""
                 Layout.preferredWidth: 120
                 Layout.preferredHeight: 48
                 font.pixelSize: 16
@@ -96,10 +104,12 @@ Page {
                 }
 
                 onClicked: {
-                    var selectedUuid = networkListView.model.get(networkListView.currentIndex).uuid
-                    console.info("Clicked on connection with UUID:", selectedUuid)
-                    nmManager.onSelectedConnectionChanged(selectedUuid)
-                    stackView.push("EditingEthernetPage.qml", { "connectionUuid": selectedUuid })
+                    // var selectedUuid = networkListView.model.get(networkListView.currentIndex).uuid
+                    console.info("Modifying connection:", currentConnectionUuid)
+                    // console.info("Clicked on connection with UUID:", selectedUuid)
+                    nmManager.onSelectedConnectionChanged(currentConnectionUuid)
+                    // nmManager.onSelectedConnectionChanged(selectedUuid)
+                    stackView.push("EditingEthernetPage.qml", { "connectionUuid": currentConnectionUuid })
                 }
             }
 
@@ -132,9 +142,9 @@ Page {
                 }
 
                 onClicked: {
-                    var uuid = networkListView.model.get(networkListView.currentIndex).uuid
-                    console.info("connection:", uuid)
-                    nmManager.removeConnection(uuid)
+                    // var uuid = networkListView.model.get(networkListView.currentIndex).uuid
+                    // console.info("connection:", uuid)
+                    // nmManager.removeConnection(uuid)
                 }
             }
         }

@@ -1,5 +1,5 @@
-#ifndef CONNECTIONLISTMODEL_H
-#define CONNECTIONLISTMODEL_H
+#ifndef CONNECTIONPROXYMODEL_H
+#define CONNECTIONPROXYMODEL_H
 
 #include <QAbstractListModel>
 #include <NetworkManagerQt/Connection>
@@ -18,4 +18,4 @@ protected:
     bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const override;
 };
 
-#endif // CONNECTIONLISTMODEL_H
+#endif // CONNECTIONPROXYMODEL_H

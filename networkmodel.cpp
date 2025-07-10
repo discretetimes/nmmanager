@@ -90,7 +90,7 @@ void NetworkModel::refresh()
     qInfo() << "Wired con count:" << m_connections.count();
     for (const NetworkManager::Connection::Ptr &connection : NetworkManager::listConnections()) {
         // insertConnection(connection);
-        qInfo() << "Con name:" << connection->name() ;
+        qInfo() << "Con name:" << connection->name() << "con type:" << connection->settings()->connectionType();
     }
     endResetModel();
 }

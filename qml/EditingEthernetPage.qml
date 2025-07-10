@@ -215,12 +215,12 @@ Page {
                         if (parts.length === 2 && parts[0].match(/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/) && parts[1].match(/^\d{1,2}$/)) {
                             newAddresses.push(item.address)
                         } else {
-                            console.warn("Invalid address format skipped:", item.address)
+                            console.info("Invalid address format skipped:", item.address)
                         }
                     }
                 }
                 if (newAddresses.length === 0) {
-                    console.warn("No valid addresses provided for manual configuration")
+                    console.info("No valid addresses provided for manual configuration")
                     return // Prevent saving invalid settings
                 }
             }
@@ -234,7 +234,12 @@ Page {
                 "ipv4Method": methodComboBox.currentIndex === 0 ? 0 : 2,
                 "addresses": newAddresses
             }
-            networkModel.updateConnection(newSettings)
+            // var newSettings = {
+            //     "ipv4Method": "0",
+            //     "addresses": "192.168.0.1/24"
+            // }
+            console.info("qml newSettings:", newSettings)
+            networkModel.updateConnection(connectionUuid, newSettings)
             stackView.pop()
         }
 

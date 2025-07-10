@@ -36,6 +36,8 @@ add_executable(${PROJECT_NAME} ${PROJECT_SOURCES}
     nmmanager.h
     networkmodel.cpp
     networkmodel.h
+    connectionproxymodel.cpp
+    connectionproxymodel.h
     main.qml
     main.qrc
 )
