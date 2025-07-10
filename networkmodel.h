@@ -32,6 +32,7 @@ public:
     enum ConnectionRoles {
         NameRole = Qt::UserRole + 1,
         UuidRole,
+        ConnectionPathRole,
         TypeRole
     };
 

@@ -42,6 +42,8 @@ QVariant NetworkModel::data(const QModelIndex &index, int role) const
         return connection->name();
     case UuidRole:
         return connection->uuid();
+    case ConnectionPathRole:
+        return connection->path();
     case TypeRole:
         return connection->settings()->connectionType();
     }
@@ -75,6 +77,7 @@ QHash<int, QByteArray> NetworkModel::roleNames() const
     QHash<int, QByteArray> roles;
     roles[NameRole] = "name";
     roles[UuidRole] = "uuid";
+    roles[ConnectionPathRole] = "path";
     roles[TypeRole] = "type";
     return roles;
 }
@@ -97,51 +100,52 @@ struct AddConnectionData {
     NetworkModel *handler;
 };
 
-void add_connection_cb(GObject *client, GAsyncResult *result, gpointer user_data)
-{
-    AddConnectionData *data = static_cast<AddConnectionData *>(user_data);
-
-    GError *error = nullptr;
-    NMRemoteConnection *connection = nm_client_add_connection2_finish(NM_CLIENT(client), result, NULL, &error);
-
-    if (error) {
-        // KNotification *notification = new KNotification(QStringLiteral("FailedToAddConnection"), KNotification::CloseOnTimeout, data->handler);
-        // notification->setTitle(i18n("Failed to add connection %1", data->id));
-        // notification->setComponentName(QStringLiteral("networkmanagement"));
-        // notification->setText(QString::fromUtf8(error->message));
-        // notification->setIconName(QStringLiteral("dialog-warning"));
-        // notification->sendEvent();
-
-        g_error_free(error);
-    } else {
-        // KNotification *notification = new KNotification(QStringLiteral("ConnectionAdded"), KNotification::CloseOnTimeout, data->handler);
-        // notification->setText(i18n("Connection %1 has been added", data->id));
-        // notification->setComponentName(QStringLiteral("networkmanagement"));
-        // notification->setTitle(data->id);
-        // notification->setIconName(QStringLiteral("dialog-information"));
-        // notification->sendEvent();
-
-        g_object_unref(connection);
-    }
-
-    delete data;
-}
+// void add_connection_cb(GObject *client, GAsyncResult *result, gpointer user_data)
+// {
+//     AddConnectionData *data = static_cast<AddConnectionData *>(user_data);
+//
+//     GError *error = nullptr;
+//     NMRemoteConnection *connection = nm_client_add_connection2_finish(NM_CLIENT(client), result, NULL, &error);
+//
+//     if (error) {
+//         // KNotification *notification = new KNotification(QStringLiteral("FailedToAddConnection"), KNotification::CloseOnTimeout, data->handler);
+//         // notification->setTitle(i18n("Failed to add connection %1", data->id));
+//         // notification->setComponentName(QStringLiteral("networkmanagement"));
+//         // notification->setText(QString::fromUtf8(error->message));
+//         // notification->setIconName(QStringLiteral("dialog-warning"));
+//         // notification->sendEvent();
+//
+//         g_error_free(error);
+//     } else {
+//         // KNotification *notification = new KNotification(QStringLiteral("ConnectionAdded"), KNotification::CloseOnTimeout, data->handler);
+//         // notification->setText(i18n("Connection %1 has been added", data->id));
+//         // notification->setComponentName(QStringLiteral("networkmanagement"));
+//         // notification->setTitle(data->id);
+//         // notification->setIconName(QStringLiteral("dialog-information"));
+//         // notification->sendEvent();
+//
+//         g_object_unref(connection);
+//     }
+//
+//     delete data;
+// }
 
 
 void NetworkModel::addConnection(NMConnection *connection)
 {
-    NMClient *client = nm_client_new(nullptr, nullptr);
-
-    AddConnectionData *userData = new AddConnectionData{QString::fromUtf8(nm_connection_get_id(connection)), this};
-
-    nm_client_add_connection2(client,
-                              nm_connection_to_dbus(connection, NM_CONNECTION_SERIALIZE_ALL),
-                              NM_SETTINGS_ADD_CONNECTION2_FLAG_TO_DISK,
-                              nullptr,
-                              true,
-                              nullptr,
-                              add_connection_cb,
-                              userData);
+    // NMClient *client = nm_client_new(nullptr, nullptr);
+    //
+    // AddConnectionData *userData = new AddConnectionData{QString::fromUtf8(nm_connection_get_id(connection)), this};
+    //
+    // nm_client_add_connection2(client,
+    //                           nm_connection_to_dbus(connection, NM_CONNECTION_SERIALIZE_ALL),
+    //                           NM_SETTINGS_ADD_CONNECTION2_FLAG_TO_DISK,
+    //                           nullptr,
+    //                           true,
+    //                           nullptr,
+    //                           add_connection_cb,
+    //                           userData);
+    // QDBusPendingReply<QDBusObjectPath> reply = NetworkManager::addConnection(newSettings->toMap());
 }
 
 void NetworkModel::addConnection(const NMVariantMapMap &map)
@@ -223,16 +227,17 @@ void NetworkModel::updateConnection(const QString &uuid, const QVariantMap &sett
         return;
     }
 
+    // obtain settings from existing
     ConnectionSettings::Ptr m_settings = connection->settings();
-
-    NMVariantMapMap newSettingsMap;
+    Ipv4Setting::Ptr m_ipv4setting = m_settings->setting(Setting::Ipv4).dynamicCast<Ipv4Setting>();
 
     // 1. Build the 'connection' settings map
-    QVariantMap connectionSettings;
-    connectionSettings["id"] = m_settings->name();
-    connectionSettings["uuid"] = uuid; // Use the existing UUID
-    connectionSettings["type"] = "802-3-ethernet";
-    newSettingsMap["connection"] = connectionSettings;
+    m_settings->setId("test-1");
+    // QVariantMap connectionSettings;
+    // connectionSettings["id"] = m_settings->id();
+    // connectionSettings["uuid"] = m_settings->uuid(); // Use the existing UUID
+    // connectionSettings["type"] = "802-3-ethernet";
+    // newSettingsMap["connection"] = connectionSettings;
 
     // 2. Build the '802-3-ethernet' (wired) settings map
     // QVariantMap wiredSettings;
@@ -240,15 +245,34 @@ void NetworkModel::updateConnection(const QString &uuid, const QVariantMap &sett
     // newSettingsMap["802-3-ethernet"] = wiredSettings;
 
     // 3. Build the 'ipv4' settings map
-    QVariantMap ipv4Settings;
-    if (settings["ipv4Method"].toString() == "Manual") {
-        ipv4Settings["method"] = "manual";
-        ipv4Settings["addresses"] = QVariant::fromValue(QVariantList{settings["ipv4Address"].toString()});
-    } else {
-        ipv4Settings["method"] = "auto";
+    // ("ipv4", QMap(("address-data", QVariant(NMVariantMapList, ))("addresses", QVariant(UIntListList, ))("method", QVariant(QString, "manual"))))
+    // 1. Update IPv4 settings -------------------------------------------------
+    // QVariantMap ipv4Map = newSettingsMap.contains("ipv4") ? newSettingsMap["ipv4"].toMap() : QVariantMap();
+    if (settings.contains("ipv4Method")) {
+        int method = settings["ipv4Method"].toInt();
+        if(method == 0)
+            m_ipv4setting->setMethod(Ipv4Setting::Automatic);
+        else
+            m_ipv4setting->setMethod(Ipv4Setting::Manual);
     }
-    newSettingsMap["ipv4"] = ipv4Settings;
 
+    if (settings.contains("addresses")) {
+        QList<IpAddress> addresses;
+        for(const QVariant &addrVariant : settings["addresses"].toList()) {
+            QStringList parts = addrVariant.toString().split('/');
+            if(parts.length() == 2) {
+                IpAddress address;
+                address.setIp(QHostAddress(parts[0]));
+                address.setPrefixLength(parts[1].toUInt());
+                addresses.append(address);
+            }
+        }
+        m_ipv4setting->setAddresses(addresses);
+    }
+
+    QVariantMap newipv4setting = m_ipv4setting->toMap();
+    NMVariantMapMap newSettingsMap = m_settings->toMap();
+    qInfo() << "Update settings: " << newSettingsMap;
     QDBusReply<void> reply = connection->update(newSettingsMap);
     qInfo() << "Update settings: " << reply.error().message();
     // m_networkModel->updateConnection(connection, newSettingsMap);
@@ -274,6 +298,9 @@ void NetworkModel::setConnection(const NetworkManager::ConnectionSettings::Ptr& 
         // }
         // details["ipv4"] = ipv4Details;
     }
+    // NetworkManager::ConnectionSettings::Ptr settings = connection->settings();
+    NMVariantMapMap allSettings = connection->toMap();
+    qInfo() << "Connection details: " <<  allSettings;
 }
 
 QVariantMap NetworkModel::get(int row)

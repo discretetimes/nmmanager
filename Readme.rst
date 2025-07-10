@@ -175,3 +175,86 @@ libs
 ------
 provide handler and models
 and connection details
+
+api
+=======
+
+settings
+---------------
+onnection details:
+QMap(
+
+("802-3-ethernet", QMap(("auto-negotiate", QVariant(bool, true))("wake-on-lan", QVariant(uint, 1))))
+("connection", QMap(("autoconnect", QVariant(bool, false))("autoconnect-slaves", QVariant(int, -1))("id", QVariant(QString, "test-4"))("lldp", QVariant(int, -1))("metered", QVariant(int, 0))("type", QVariant(QString, "802-3-ethernet"))("uuid", QVariant(QString, "b9fa0607-aaf0-47b1-81f2-cbb51a055605"))))
+("ipv4", QMap(("address-data", QVariant(NMVariantMapList, ))("addresses", QVariant(UIntListList, ))("method", QVariant(QString, "manual"))))
+("ipv6", QMap(("addr-gen-mode", QVariant(int, 1))("method", QVariant(QString, "auto"))))
+
+)
+
+minimal required
+
+Connection Settings (connection):
+id
+uuid
+type
+autoconnect
+
+IPv4 Settings (ipv4):
+method: "manual"
+address-data: []
+
+ConnectionEditorBase::initialize()
+// IPv4 widget
+auto ipv4Widget = new IPv4Widget(m_connection->setting(NetworkManager::Setting::Ipv4), this);
+// If the connection is not empty (not new) we want to load its secrets
+    if (!emptyConnection) {
+
+void KCMNetworkmanagement::save()
+{
+    NetworkManager::Connection::Ptr connection = NetworkManager::findConnection(m_currentConnectionPath);
+    if (connection) {
+        m_handler->updateConnection(connection, m_tabWidget->setting());
+    }
+    kcmChanged(false);
+    KCModule::save();
+}
+
+NMVariantMapMap ConnectionEditorBase::setting() const{
+// Set properties which are not returned from setting widgets
+NMVariantMapMap settings = m_connectionWidget->setting();
+NetworkManager::ConnectionSettings::Ptr connectionSettings =
+        NetworkManager::ConnectionSettings::Ptr(new NetworkManager::ConnectionSettings(m_connection->connectionType()));
+connectionSettings->fromMap(settings);
+connectionSettings->setId(connectionName());
+return connectionSettings->toMap();
+}
+
+
+NMVariantMapMap ConnectionWidget::setting() const{
+NetworkManager::ConnectionSettings settings;
+
+return settings.toMap();
+}
+
+// monitor changes
+QVariantMap IPv4Widget::setting() const
+{
+NetworkManager::Ipv4Setting ipv4Setting;
+ipv4Setting.setMethod(NetworkManager::Ipv4Setting::Automatic);
+
+    if (m_ui->tableViewAddresses->isEnabled()) {
+        QList<NetworkManager::IpAddress> list;
+        for (int i = 0, rowCount = d->model.rowCount(); i < rowCount; i++) {
+            NetworkManager::IpAddress address;
+            address.setIp(QHostAddress(d->model.item(i, 0)->text()));
+            address.setNetmask(QHostAddress(d->model.item(i, 1)->text()));
+            address.setGateway(QHostAddress(d->model.item(i, 2)->text()));
+            list << address;
+        }
+        if (!list.isEmpty()) {
+            ipv4Setting.setAddresses(list);
+        }
+    }
+
+return ipv4Setting.toMap();
+}

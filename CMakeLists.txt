@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.13)
 project(nmconeditor LANGUAGES CXX)
 
 set(CMAKE_AUTOMOC ON)
@@ -8,16 +8,18 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt5 COMPONENTS Core Gui Qml Network Widgets REQUIRED) # Widgets for some NMQt dependencies if any
+find_package(Qt5 COMPONENTS Core Gui DBus Qml Network Widgets REQUIRED) # Widgets for some NMQt dependencies if any
 
 find_package(ECM 5.71 NO_MODULE)
 set(CMAKE_MODULE_PATH ${ECM_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 include(FeatureSummary)
 
-find_package(KF5 ${KF5_MIN_VERSION} REQUIRED COMPONENTS
-    # CoreAddons      # KAboutData
-    NetworkManagerQt
-)
+# find_package(KF5 ${KF5_MIN_VERSION} REQUIRED COMPONENTS
+#     # CoreAddons      # KAboutData
+#     NetworkManagerQt
+# )
+
+find_package(KF5NetworkManagerQt REQUIRED)
 
 # find_package(KF5 COMPONENTS CoreAddons I18n NetworkManagerQt REQUIRED) # Use NetworkManagerQt5 for Qt5
 
