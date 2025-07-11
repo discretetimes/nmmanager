@@ -24,11 +24,17 @@
 #include <QVariant>
 #include <QDebug>
 
+#include "networkitemslist.h"
+
 class NetworkModel : public QAbstractListModel
 {
     Q_OBJECT
 
 public:
+    Q_PROPERTY(bool delayModelUpdates READ delayModelUpdates NOTIFY delayModelUpdatesChanged)
+
+    explicit NetworkModel(QObject *parent = nullptr);
+
     enum ConnectionRoles {
         NameRole = Qt::UserRole + 1,
         UuidRole,
@@ -39,7 +45,11 @@ public:
         ConnectionDetailsRole
     };
 
-    explicit NetworkModel(QObject *parent = nullptr);
+    enum ModelChangeType {
+        ItemAdded,
+        ItemRemoved,
+        ItemPropertyChanged
+    };
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
 
@@ -58,6 +68,11 @@ public:
     // void addConnection(NMConnection *connection);
 
     QHash<int, QByteArray> roleNames() const override;
+
+    bool delayModelUpdates() const;
+
+Q_SIGNALS:
+    void delayModelUpdatesChanged();
 
 public slots:
     /**
@@ -85,6 +100,11 @@ Q_SIGNALS:
     void connectionsChanged();
 
 private:
+
+    bool m_delayModelUpdates = false;
+    NetworkItemsList m_list;
+    QQueue<QPair<ModelChangeType, NetworkModelItem *>> m_updateQueue;
+
     void removeConnectionInternal(const QString &connection);
     QString m_tmpConnectionPath;
     QString m_tmpConnectionUuid;
@@ -93,6 +113,13 @@ private:
 
     // void handleConnectionAdded(const QString &path);
     // void handleConnectionRemoved((const QString &path);
+    void flushUpdateQueue();
+    void updateDelayModelUpdates();
+
+    void insertItem(NetworkModelItem *item);
+    void removeItem(NetworkModelItem *item);
+    void updateItem(NetworkModelItem *item);
+
 
     void insertItem(int index);
     void removeItem(int index);

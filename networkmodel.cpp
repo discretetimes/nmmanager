@@ -1,4 +1,5 @@
 #include "networkmodel.h"
+#include "networkmodelitem.h"
 
 #include <NetworkManagerQt/Connection>
 #include <NetworkManagerQt/ConnectionSettings>
@@ -413,3 +414,87 @@ NetworkManager::Connection::Ptr NetworkModel::connectionFromArgs (const QVariant
     }
     return nullptr;
 }
+
+void NetworkModel::insertItem(NetworkModelItem *item)
+{
+    if (m_delayModelUpdates) {
+        m_updateQueue.enqueue(QPair<NetworkModel::ModelChangeType, NetworkModelItem *>(NetworkModel::ItemAdded, item));
+        return;
+    }
+
+    const int index = m_list.count();
+    beginInsertRows(QModelIndex(), index, index);
+    m_list.insertItem(item);
+    endInsertRows();
+    updateDelayModelUpdates();
+}
+
+void NetworkModel::removeItem(NetworkModelItem *item)
+{
+    if (m_delayModelUpdates) {
+        m_updateQueue.enqueue(QPair<NetworkModel::ModelChangeType, NetworkModelItem *>(NetworkModel::ItemRemoved, item));
+        return;
+    }
+
+    const int row = m_list.indexOf(item);
+    if (row != -1) {
+        beginRemoveRows(QModelIndex(), row, row);
+        m_list.removeItem(item);
+        item->deleteLater();
+        endRemoveRows();
+        updateDelayModelUpdates();
+    }
+}
+
+void NetworkModel::updateItem(NetworkModelItem *item)
+{
+    if (m_delayModelUpdates) {
+        m_updateQueue.enqueue(QPair<NetworkModel::ModelChangeType, NetworkModelItem *>(NetworkModel::ItemPropertyChanged, item));
+        return;
+    }
+
+    const int row = m_list.indexOf(item);
+    if (row != -1) {
+        // item->invalidateDetails();
+        QModelIndex index = createIndex(row, 0);
+        // Q_EMIT dataChanged(index, index, item->changedRoles());
+        item->clearChangedRoles();
+        updateDelayModelUpdates();
+    }
+}
+
+bool NetworkModel::delayModelUpdates() const
+{
+    return m_delayModelUpdates;
+}
+
+void NetworkModel::flushUpdateQueue()
+{
+    while (!m_updateQueue.isEmpty()) {
+        QPair<NetworkModel::ModelChangeType, NetworkModelItem *> update = m_updateQueue.dequeue();
+        if (update.first == ItemAdded) {
+            insertItem(update.second);
+        } else if (update.first == ItemRemoved) {
+            removeItem(update.second);
+        } else if (update.first == ItemPropertyChanged) {
+            updateItem(update.second);
+        }
+    }
+}
+
+void NetworkModel::updateDelayModelUpdates()
+{
+    const QList<NetworkModelItem *> items = m_list.items();
+    const bool delay = std::any_of(items.begin(), items.end(), [](NetworkModelItem *item) -> bool {
+        return item->delayModelUpdates();
+    });
+    if (m_delayModelUpdates != delay) {
+        m_delayModelUpdates = delay;
+        Q_EMIT delayModelUpdatesChanged();
+
+        if (!m_delayModelUpdates) {
+            flushUpdateQueue();
+        }
+    }
+}
+

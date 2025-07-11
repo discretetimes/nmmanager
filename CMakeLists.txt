@@ -42,6 +42,8 @@ add_executable(${PROJECT_NAME} ${PROJECT_SOURCES}
     main.qrc
     networkmodelitem.h
     networkmodelitem.cpp
+    networkitemslist.cpp
+    networkitemslist.h
 )
 
 # Link Qt libraries
