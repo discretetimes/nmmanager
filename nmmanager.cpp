@@ -135,9 +135,10 @@ void NmManager::removeConnection(const QString &uuid)
 {
     // qInfo() << "deleting connection: " << uuid;
     // NetworkManager::Connection::Ptr con = NetworkManager::findConnection(connection);
-    NetworkManager::Connection::Ptr con = NetworkManager::findConnectionByUuid(uuid);
-    qInfo() << "deleting connection: " << con->name();
-    con->remove();
+    // NetworkManager::Connection::Ptr con = NetworkManager::findConnectionByUuid(uuid);
+    // qInfo() << "deleting connection: " << con->name();
+    // con->remove();
+     m_networkModel->removeConnection(uuid);
 }
 
 

@@ -18,6 +18,9 @@ using namespace NetworkManager;
 NetworkModel::NetworkModel(QObject *parent)
     : QAbstractListModel(parent)
 {
+    // Connect to global connection change signals
+    // connect(NetworkManager::notifier(), &NetworkManager::Notifier::connectionAdded, this, &NetworkModel::addConnection);
+    // connect(NetworkManager::settingsNotifier(), &NetworkManager::SettingsNotifier::connectionRemoved, this, &NetworkModel::removeConnection);
     refresh();
 }
 
@@ -148,6 +151,42 @@ struct AddConnectionData {
     // QDBusPendingReply<QDBusObjectPath> reply = NetworkManager::addConnection(newSettings->toMap());
 // }
 
+
+void NetworkModel::insertItem(int index)
+{
+    emit beginInsertRows(QModelIndex(), index, index);
+    m_connections.removeAt(index);
+    emit endInsertRows();;
+}
+
+void NetworkModel::removeItem(int index)
+{
+    emit beginRemoveRows(QModelIndex(), index, index);
+    m_connections.removeAt(index);
+    emit endRemoveRows();
+}
+
+// void NetworkModel::updateItem(const QModelIndex &index, const QVariant &value, int role)
+// {
+//     // const int row = m_list.indexOf(item);
+//     // if (row != -1) {
+//     //     item->invalidateDetails();
+//     //     QModelIndex index = createIndex(row, 0);
+//     //     Q_EMIT dataChanged(index, index, item->changedRoles());
+//     //     item->clearChangedRoles();
+//     // }
+//     if (data(index, role) != value) {
+//         // Here you would implement logic to update the connection using NetworkManager
+//         // For example:
+//         // m_connections[index.row()]->settings()->setId(value.toString());
+//         // m_connections[index.row()]->update(m_connections[index.row()]->settings()->toMap());
+//         emit dataChanged(index, index, {role});
+//         return true;
+//     }
+//     return false;
+// }
+
+
 void NetworkModel::addConnection(const NMVariantMapMap &map)
 {
         // NetworkManager::addConnection(map);
@@ -167,7 +206,21 @@ void NetworkModel::removeConnection(const QString &connection)
         //     m_connections = NetworkManager::listConnections();
         //     endResetModel();
         // }
-    removeConnectionInternal(connection);
+    qInfo() << "deleting connection: " << connection;
+    // NetworkManager::Connection::Ptr con = NetworkManager::findConnection(connection);
+    NetworkManager::Connection::Ptr con = NetworkManager::findConnectionByUuid(connection);
+    qInfo() << "deleting connection: " << con->name();
+    con->remove();
+    for (int i = 0; i < m_connections.size(); ++i) {
+        if (m_connections[i]->uuid() == connection) {
+            m_connections.removeAt(i);
+            // m_networkModel->removeConnection(path);
+            removeItem(i);
+            break;
+        }
+    }
+
+    // removeConnectionInternal(connection);
 }
 
 void NetworkModel::removeConnectionInternal(const QString &connection)
@@ -360,4 +413,3 @@ NetworkManager::Connection::Ptr NetworkModel::connectionFromArgs (const QVariant
     }
     return nullptr;
 }
-

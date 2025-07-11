@@ -88,6 +88,13 @@ private:
     QString m_tmpDevicePath;
     // QString m_tmpSpecificPath;
 
+    // void handleConnectionAdded(const QString &path);
+    // void handleConnectionRemoved((const QString &path);
+
+    void insertItem(int index);
+    void removeItem(int index);
+    // void updateItem(const QModelIndex &index, const QVariant &value, int role);
+
     NetworkManager::Connection::Ptr connectionFromArgs(const QVariantList &args) const;
 
     QList<NetworkManager::Connection::Ptr> m_connections;
