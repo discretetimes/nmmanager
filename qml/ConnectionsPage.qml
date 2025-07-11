@@ -17,6 +17,7 @@ Page {
     // }
     // Properties to track selected connection
     property string currentConnectionUuid: ""
+    property var currentConnectionDetails: ({})
     // property string currentConnectionName: ""
 
     ColumnLayout {
@@ -60,6 +61,9 @@ Page {
                     // networkListView.currentIndex = index
                     // networkListView.currentConnectionUuid = model.uuid
                     currentConnectionUuid = model.Uuid
+                    console.info("Details: ", currentConnectionUuid)
+                    currentConnectionDetails = model.ConnectionDetails
+                    console.info("Details: ", currentConnectionDetails)
                 }
             }
 

@@ -199,43 +199,51 @@ void NetworkModelItem::setDelayModelUpdates(bool delay)
 void NetworkModelItem::updateDetails() const
 {
     // m_detailsValid = true;
-    m_details.clear();
+    // m_details.clear();
 
-    if (itemType() == NetworkModelItem::UnavailableConnection) {
-        return;
-    }
+    qInfo() << "Update details" << m_details ;
+    // if (itemType() == NetworkModelItem::UnavailableConnection) {
+    //     return;
+    // }
 
-    NetworkManager::Device::Ptr device = NetworkManager::findNetworkInterface(m_devicePath);
+    // NetworkManager::Device::Ptr device = NetworkManager::findNetworkInterface(m_devicePath);
 
     // Get IPv[46]Address and related nameservers + IPv[46] default gateway
-    if (device && device->ipV4Config().isValid() && m_connectionState == NetworkManager::ActiveConnection::Activated) {
-        if (!device->ipV4Config().addresses().isEmpty()) {
-            QHostAddress addr = device->ipV4Config().addresses().first().ip();
-            if (!addr.isNull() && addr.isGlobal()) {
-                m_details << "IPv4 Address" << addr.toString();
-            }
-        }
-        if (!device->ipV4Config().gateway().isEmpty()) {
-            QString addr = device->ipV4Config().gateway();
-            if (!addr.isNull()) {
-                m_details << "IPv4 Default Gateway" << addr;
-            }
-        }
-        if (!device->ipV4Config().nameservers().isEmpty()) {
-            QHostAddress addr1 = device->ipV4Config().nameservers().first();
-            QHostAddress addr2 = device->ipV4Config().nameservers().last();
-            if (!addr1.isNull()) {
-                m_details << "IPv4 Primary Nameserver" << addr1.toString();
-            }
-            if (!addr2.isNull() && !addr1.isNull()) {
-                if (addr2 != addr1) {
-                    m_details << "IPv4 Secondary Nameserver" << addr2.toString();
-                }
-            }
-        }
-    }
+    // if (device && device->ipV4Config().isValid() && m_connectionState == NetworkManager::ActiveConnection::Activated) {
+        // if (!device->ipV4Config().addresses().isEmpty()) {
+        //     QHostAddress addr = device->ipV4Config().addresses().first().ip();
+        //     if (!addr.isNull() && addr.isGlobal()) {
+        //         m_details << "IPv4 Address" << addr.toString();
+        //     }
+        // }
+        // if (!device->ipV4Config().gateway().isEmpty()) {
+        //     QString addr = device->ipV4Config().gateway();
+        //     if (!addr.isNull()) {
+        //         m_details << "IPv4 Default Gateway" << addr;
+        //     }
+        // }
+        // if (!device->ipV4Config().nameservers().isEmpty()) {
+        //     QHostAddress addr1 = device->ipV4Config().nameservers().first();
+        //     QHostAddress addr2 = device->ipV4Config().nameservers().last();
+        //     if (!addr1.isNull()) {
+        //         m_details << "IPv4 Primary Nameserver" << addr1.toString();
+        //     }
+        //     if (!addr2.isNull() && !addr1.isNull()) {
+        //         if (addr2 != addr1) {
+        //             m_details << "IPv4 Secondary Nameserver" << addr2.toString();
+        //         }
+        //     }
+        // }
 
-    if (device && m_connectionState == NetworkManager::ActiveConnection::Activated) {
-        m_details << "Device" << device->interfaceName();
-    }
+
+    m_details << "name" << "test-1";
+    m_details << "ipv4Method" << "1";
+    m_details << "addresses" << "192.168.0.1";
+
+        qInfo() << "updated details" << m_details;
+    // }
+
+    // if (device && m_connectionState == NetworkManager::ActiveConnection::Activated) {
+    //     m_details << "Device" << device->interfaceName();
+    // }
 }

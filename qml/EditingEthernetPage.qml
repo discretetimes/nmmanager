@@ -6,7 +6,7 @@ Page {
     property string connectionUuid
     property var connectionDetails: ({})
 
-    title: "Edit Addresses for " + (connectionDetails.name || "Connection")
+    title: "Edit Addresses for " + (connectionDetails.Name || "Connection")
 
     ListModel {
         id: addressModel
@@ -15,6 +15,8 @@ Page {
     Component.onCompleted: {
         // Fetch connection details
         connectionDetails = networkModel.getConnectionDetails(connectionUuid) || {}
+        console.info("Details: ", connectionDetails)
+        // connectionDetails = networkModel.ConnectionDetails || {}
         if (!connectionDetails.name) {
             console.warn("No connection details found for UUID:", connectionUuid)
         }
@@ -35,8 +37,8 @@ Page {
         // } else {
         //     console.warn("Invalid or missing addresses in connectionDetails")
         // }
-        for (var i = 0; i < connectionDetails.addresses.length; ++i) {
-            addressModel.append({ "address": connectionDetails.addresses[i] })
+        for (var i = 0; i < connectionDetails.ipv4Addresses.length; ++i) {
+            addressModel.append({ "address": connectionDetails.ipv4Addresses[i] })
         }
     }
 

@@ -556,7 +556,7 @@ QVariantMap NetworkModel::get(int row)
     res["uuid"] = connection->uuid();
     return res;
 }
-
+/*
 QVariantMap NetworkModel::getConnectionDetails(const QString &uuid)
 {
     QVariantMap details;
@@ -582,6 +582,75 @@ QVariantMap NetworkModel::getConnectionDetails(const QString &uuid)
         }
     }
     return details; // Return empty map if not found
+}*/
+
+// QVariantMap NetworkModel::getConnectionDetails(const QString &uuid)
+// {
+//     NetworkManager::Connection::Ptr con = NetworkManager::findConnectionByUuid(uuid);
+//     ConnectionSettings::Ptr connection = con->settings();
+//     // QVariantMap details;
+//     // details["name"] = connection->name();
+//     NetworkManager::WiredSetting::Ptr wiredSetting = connection->setting(NetworkManager::Setting::Wired).dynamicCast<NetworkManager::WiredSetting>();
+//     // if (wiredSetting) {
+//     //     details["device"] = wiredSetting->device();
+//     // }
+//
+//     NetworkManager::Ipv4Setting::Ptr ipv4Setting = connection->setting(NetworkManager::Setting::Ipv4).dynamicCast<NetworkManager::Ipv4Setting>();
+//     if (ipv4Setting) {
+//         QVariantMap ipv4Details;
+//         ipv4Details["method"] = ipv4Setting->method();
+//         // You would need to properly handle addresses, as they are a list of Address objects
+//         // This is a simplified example
+//         // if (!ipv4Setting->addresses().isEmpty()) {
+//         //     ipv4Details["address"] = ipv4Setting->addresses().first().address();
+//         // }
+//         // details["ipv4"] = ipv4Details;
+//     }
+//     // NetworkManager::ConnectionSettings::Ptr settings = connection->settings();
+//     NMVariantMapMap allSettings = connection->toMap();
+//     qInfo() << "Connection details: " <<  allSettings;
+//     return allSettings;
+// }
+
+
+QVariantMap NetworkModel::getConnectionDetails(const QString &uuid)
+{
+    QVariantMap details;
+    // for (const auto &connection : m_connections) {
+        // if (connection->uuid() == uuid) {
+            NetworkManager::Connection::Ptr connection = NetworkManager::findConnectionByUuid(uuid);
+            details["name"] = connection->name();
+            details["uuid"] = connection->uuid();
+            details["path"] = connection->path();
+            details["type"] = connection->settings()->connectionType();
+
+            // Get IPv4 settings
+            if (auto ipv4Setting = connection->settings()->setting(Setting::Ipv4).dynamicCast<Ipv4Setting>()) {
+                details["ipv4Method"] = [ipv4Setting]() -> QString {
+                    switch (ipv4Setting->method()) {
+                        case Ipv4Setting::Automatic: return "auto";
+                        case Ipv4Setting::Manual: return "manual";
+                        case Ipv4Setting::LinkLocal: return "link-local";
+                        case Ipv4Setting::Shared: return "shared";
+                        case Ipv4Setting::Disabled: return "disabled";
+                        default: return "unknown";
+                    }
+                }();
+
+                QStringList addresses;
+                for (const auto &addr : ipv4Setting->addresses()) {
+                    addresses << addr.ip().toString() + "/" + QString::number(addr.prefixLength());
+                }
+                details["ipv4Addresses"] = addresses;
+            }
+
+            // Get device interface
+            // details["deviceInterface"] = connection->interfaceName();
+            // break;
+        // }
+    // }""
+    qInfo() << "Get details: " << details;
+    return details;
 }
 
 NetworkManager::Connection::Ptr NetworkModel::connectionFromArgs (const QVariantList &args) const
