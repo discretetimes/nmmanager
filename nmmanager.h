@@ -23,6 +23,22 @@ public:
    */
   Q_INVOKABLE void removeConnection(const QString &uuid);
 
+public Q_SLOTS:
+    /**
+     * Activates given connection
+     * @connection - d-bus path of the connection you want to activate
+     * @device - d-bus path of the device where the connection should be activated
+     * @specificParameter - d-bus path of the specific object you want to use for this activation, i.e access point
+     */
+    void activateConnection(const QString &connection, const QString &device);
+    /**
+     * Deactivates given connection
+     * @connection - d-bus path of the connection you want to deactivate
+     * @device - d-bus path of the connection where the connection is activated
+     */
+    void deactivateConnection(const QString &connection, const QString &device);
+
+
 Q_SIGNALS:
     void connectionLoaded(const QVariantMap &settings);
 

@@ -88,6 +88,47 @@ void NmManager::onRequestCreateConnection(const QVariantMap &settings)
 //     }
 // }
 
+void NmManager::activateConnection(const QString &connection, const QString &device)
+{
+    NetworkManager::Connection::Ptr con = NetworkManager::findConnectionByUuid(connection);
+
+    if (!con) {
+        qInfo() << "Not possible to activate this connection";
+        return;
+    }
+
+    QDBusReply<QDBusObjectPath> reply = NetworkManager::activateConnection(connection, device, "");
+
+    if (!reply.isValid()) {
+        QString error = reply.error().message();
+    }
+}
+
+void NmManager::deactivateConnection(const QString &connection, const QString &device)
+{
+    // const QString connection = _connection;
+    NetworkManager::Connection::Ptr con = NetworkManager::findConnectionByUuid(connection);
+
+    if (!con) {
+        qInfo() << "Not possible to activate this connection";
+        return;
+    }
+
+    QDBusReply<void> reply;
+    for (const NetworkManager::ActiveConnection::Ptr &active : NetworkManager::activeConnections()) {
+        if (active->uuid() == con->uuid() && ((!active->devices().isEmpty() && active->devices().first() == device) || active->vpn())) {
+                NetworkManager::Device::Ptr device = NetworkManager::findNetworkInterface(active->devices().first());
+                if (device) {
+                    reply = device->disconnectInterface();
+                }
+            }
+    }
+
+    if (!reply.isValid()) {
+        qInfo() << "Failed to deactivate %1" << connection;
+    }
+}
+
 void NmManager::onSelectedConnectionChanged(const QString &connectionUuid)
 {
     QVariantList args;

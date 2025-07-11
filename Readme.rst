@@ -88,6 +88,15 @@ ipv4: method, address, netmask
 
 Save Cancel
 
+TODO
+========
+Add function: click to activate connection
+nmcli connection up test-6 ifname enp7s18u4u2c2
+
+clean up code,
+update readme,
+test code,
+
 Debug
 ==========
 QT_LOGGING_RULES="*.info=true" ./build/Desktop-Debug/nmconeditor

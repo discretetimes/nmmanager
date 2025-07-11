@@ -118,7 +118,7 @@ Page {
             }
 
             Button {
-                text: qsTr("Refresh")
+                text: qsTr("Connect")
                 Layout.preferredWidth: 120
                 Layout.preferredHeight: 48
                 font.pixelSize: 16
@@ -128,9 +128,11 @@ Page {
                     radius: 8
                 }
 
+                // deactive, if not actived
                 onClicked: {
-                    networkModel.refresh()
+                    nmManager.activateConnection(ConnectionPath, DevicePath)
                 }
+
             }
 
             Button {
