@@ -38,19 +38,19 @@ static const std::unordered_map<ConnectionType, QString> s_connectionTypeToStrin
 NetworkModelItem::NetworkModelItem(QObject *parent)
     : QObject(parent)
     , m_connectionState(NetworkManager::ActiveConnection::Deactivated)
-    , m_deviceState(NetworkManager::Device::UnknownState)
-    , m_detailsValid(false)
+    // , m_deviceState(NetworkManager::Device::UnknownState)
+    // , m_detailsValid(false)
     , m_delayModelUpdates(false)
-    , m_duplicate(false)
-    , m_mode(NetworkManager::WirelessSetting::Infrastructure)
-    , m_securityType(NetworkManager::NoneSecurity)
+    // , m_duplicate(false)
+    // , m_mode(NetworkManager::WirelessSetting::Infrastructure)
+    // , m_securityType(NetworkManager::NoneSecurity)
     , m_signal(0)
-    , m_slave(false)
+    // , m_slave(false)
     , m_type(NetworkManager::ConnectionSettings::Unknown)
-    , m_vpnState(NetworkManager::VpnConnection::Unknown)
-    , m_rxBytes(0)
-    , m_txBytes(0)
-    , m_icon(QStringLiteral("network-wired"))
+    // , m_vpnState(NetworkManager::VpnConnection::Unknown)
+    // , m_rxBytes(0)
+    // , m_txBytes(0)
+    // , m_icon(QStringLiteral("network-wired"))
 {
 }
 
@@ -58,16 +58,16 @@ NetworkModelItem::NetworkModelItem(const NetworkModelItem *item, QObject *parent
     : QObject(parent)
     , m_connectionPath(item->connectionPath())
     , m_connectionState(NetworkManager::ActiveConnection::Deactivated)
-    , m_detailsValid(false)
+    // , m_detailsValid(false)
     , m_delayModelUpdates(item->delayModelUpdates())
-    , m_duplicate(true)
+    // , m_duplicate(true)
     , m_name(item->name())
     , m_type(item->type())
     , m_uuid(item->uuid())
-    , m_vpnState(NetworkManager::VpnConnection::Unknown)
-    , m_rxBytes(0)
-    , m_txBytes(0)
-    , m_icon(item->icon())
+    // , m_vpnState(NetworkManager::VpnConnection::Unknown)
+    // , m_rxBytes(0)
+    // , m_txBytes(0)
+    // , m_icon(item->icon())
 {
 }
 
@@ -103,10 +103,15 @@ NetworkManager::ActiveConnection::State NetworkModelItem::connectionState() cons
 
 QStringList NetworkModelItem::details() const
 {
-    if (!m_detailsValid) {
+    // if (!m_detailsValid) {
         updateDetails();
-    }
+    // }
     return m_details;
+}
+
+QString NetworkModelItem::devicePath() const
+{
+    return m_devicePath;
 }
 
 NetworkModelItem::ItemType NetworkModelItem::itemType() const
@@ -149,11 +154,11 @@ NetworkManager::ConnectionSettings::ConnectionType NetworkModelItem::type() cons
 
 QString NetworkModelItem::uni() const
 {
-    if (m_type == NetworkManager::ConnectionSettings::Wireless && m_uuid.isEmpty()) {
-        return m_ssid + '%' + m_devicePath;
-    } else {
+    // if (m_type == NetworkManager::ConnectionSettings::Wireless && m_uuid.isEmpty()) {
+        // return m_ssid + '%' + m_devicePath;
+    // } else {
         return m_connectionPath + '%' + m_devicePath;
-    }
+    // }
 }
 
 QString NetworkModelItem::uuid() const
@@ -182,7 +187,7 @@ void NetworkModelItem::setDelayModelUpdates(bool delay)
 
 void NetworkModelItem::updateDetails() const
 {
-    m_detailsValid = true;
+    // m_detailsValid = true;
     m_details.clear();
 
     if (itemType() == NetworkModelItem::UnavailableConnection) {
