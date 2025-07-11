@@ -131,7 +131,8 @@ Page {
 
             Button {
                 text: qsTr("Delete")
-                enabled: networkListView.currentIndex != -1
+                // enabled: networkListView.currentIndex != -1
+                enabled: currentConnectionUuid !== ""
                 Layout.preferredWidth: 120
                 Layout.preferredHeight: 48
                 font.pixelSize: 16
@@ -143,8 +144,8 @@ Page {
 
                 onClicked: {
                     // var uuid = networkListView.model.get(networkListView.currentIndex).uuid
-                    // console.info("connection:", uuid)
-                    // nmManager.removeConnection(uuid)
+                    console.info("connection:", currentConnectionUuid)
+                    nmManager.removeConnection(currentConnectionUuid)
                 }
             }
         }
