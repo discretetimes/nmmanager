@@ -40,6 +40,8 @@ add_executable(${PROJECT_NAME} ${PROJECT_SOURCES}
     connectionproxymodel.h
     main.qml
     main.qrc
+    networkmodelitem.h
+    networkmodelitem.cpp
 )
 
 # Link Qt libraries

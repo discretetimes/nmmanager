@@ -33,7 +33,10 @@ public:
         NameRole = Qt::UserRole + 1,
         UuidRole,
         ConnectionPathRole,
-        TypeRole
+        TypeRole,
+        UniRole,
+        ItemUniqueNameRole,
+        ConnectionDetailsRole
     };
 
     explicit NetworkModel(QObject *parent = nullptr);
