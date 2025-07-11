@@ -35,7 +35,7 @@ Page {
             delegate: ItemDelegate {
                 width: parent.width
                 height: 64 // Larger height for touch targets
-                text: model.name
+                text: model.Name
                 // highlighted: ListView.isCurrentItem
                 // highlighted: networkListView.currentConnectionUuid === model.uuid
                 highlighted: currentConnectionUuid === model.uuid
@@ -59,7 +59,7 @@ Page {
                 onClicked: {
                     // networkListView.currentIndex = index
                     // networkListView.currentConnectionUuid = model.uuid
-                    currentConnectionUuid = model.uuid
+                    currentConnectionUuid = model.Uuid
                 }
             }
 

@@ -25,47 +25,145 @@ NetworkModel::NetworkModel(QObject *parent)
     initialize();
 }
 
-int NetworkModel::rowCount(const QModelIndex &parent) const
-{
-    // For list models, the row count is the size of the list.
-    if (parent.isValid())
-        return 0;
+// int NetworkModel::rowCount(const QModelIndex &parent) const
+// {
+//     // For list models, the row count is the size of the list.
+//     if (parent.isValid())
+//         return 0;
+//
+//     return m_connections.count();
+// }
 
-    return m_connections.count();
-}
+// QVariant NetworkModel::data(const QModelIndex &index, int role) const
+// {
+//     if (!index.isValid())
+//         return QVariant();
+//
+//     const NetworkManager::Connection::Ptr &connection = m_connections.at(index.row());
+//
+//     switch (role) {
+//     case NameRole:
+//         return connection->name();
+//     case UuidRole:
+//         return connection->uuid();
+//     case ConnectionPathRole:
+//         return connection->path();
+//     case TypeRole:
+//         return connection->settings()->connectionType();
+//     }
+//
+//     return QVariant();
+// }
 
 QVariant NetworkModel::data(const QModelIndex &index, int role) const
 {
-    if (!index.isValid())
-        return QVariant();
+    const int row = index.row();
 
-    const NetworkManager::Connection::Ptr &connection = m_connections.at(index.row());
+    if (row >= 0 && row < m_list.count()) {
+        NetworkModelItem *item = m_list.itemAt(row);
 
-    switch (role) {
-    case NameRole:
-        return connection->name();
-    case UuidRole:
-        return connection->uuid();
-    case ConnectionPathRole:
-        return connection->path();
-    case TypeRole:
-        return connection->settings()->connectionType();
+        switch (role) {
+            case ConnectionDetailsRole:
+                return item->details();
+            case ConnectionPathRole:
+                return item->connectionPath();
+            case ItemUniqueNameRole:
+                // if (m_list.returnItems(NetworkItemsList::Name, item->name()).count() > 1) {
+                //     return item->originalName();
+                // } else {
+                    return item->name();
+                // }
+            case ItemTypeRole:
+                return item->itemType();
+            case NameRole:
+                return item->name();
+            case TypeRole:
+                return item->type();
+            case UniRole:
+                return item->uni();
+            case UuidRole:
+                return item->uuid();
+            case DelayModelUpdatesRole:
+                return item->delayModelUpdates();
+            default:
+                break;
+        }
     }
 
-    return QVariant();
+    return {};
 }
+
+
+// bool NetworkModel::setData(const QModelIndex &index, const QVariant &value, int role)
+// {
+//     if (data(index, role) != value) {
+//         // Here you would implement logic to update the connection using NetworkManager
+//         // For example:
+//         // m_connections[index.row()]->settings()->setId(value.toString());
+//         // m_connections[index.row()]->update(m_connections[index.row()]->settings()->toMap());
+//         emit dataChanged(index, index, {role});
+//         return true;
+//     }
+//     return false;
+// }
 
 bool NetworkModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
-    if (data(index, role) != value) {
-        // Here you would implement logic to update the connection using NetworkManager
-        // For example:
-        // m_connections[index.row()]->settings()->setId(value.toString());
-        // m_connections[index.row()]->update(m_connections[index.row()]->settings()->toMap());
-        emit dataChanged(index, index, {role});
-        return true;
+    const int row = index.row();
+    const bool delay = value.toBool();
+
+    if (row >= 0 && row < m_list.count() && role == DelayModelUpdatesRole) {
+        NetworkModelItem *item = m_list.itemAt(row);
+        if (item->delayModelUpdates() != delay) {
+            item->setDelayModelUpdates(delay);
+            // TODO
+            // dataChanged(index, index, QList<int>{DelayModelUpdatesRole});
+            updateDelayModelUpdates();
+            return true;
+        }
     }
     return false;
+}
+
+int NetworkModel::rowCount(const QModelIndex &parent) const
+{
+    return parent.isValid() ? 0 : m_list.count();
+}
+
+QHash<int, QByteArray> NetworkModel::roleNames() const
+{
+    QHash<int, QByteArray> roles = QAbstractListModel::roleNames();
+    roles[ConnectionDetailsRole] = "ConnectionDetails";
+    // roles[ConnectionIconRole] = "ConnectionIcon";
+    roles[ConnectionPathRole] = "ConnectionPath";
+    // roles[ConnectionStateRole] = "ConnectionState";
+    // roles[DeviceName] = "DeviceName";
+    // roles[DevicePathRole] = "DevicePath";
+    // roles[DeviceStateRole] = "DeviceState";
+    // roles[DuplicateRole] = "Duplicate";
+    roles[ItemUniqueNameRole] = "ItemUniqueName";
+    roles[ItemTypeRole] = "ItemType";
+    // roles[LastUsedRole] = "LastUsed";
+    roles[NameRole] = "Name";
+    // roles[SectionRole] = "Section";
+    // roles[SignalRole] = "Signal";
+    // roles[SlaveRole] = "Slave";
+    // roles[SsidRole] = "Ssid";
+    // roles[SpecificPathRole] = "SpecificPath";
+    // roles[SecurityTypeRole] = "SecurityType";
+    // roles[SecurityTypeStringRole] = "SecurityTypeString";
+    // roles[TimeStampRole] = "TimeStamp";
+    roles[TypeRole] = "Type";
+    // roles[Qt::AccessibleDescriptionRole] = "AccessibleDescription";
+    roles[UniRole] = "Uni";
+    roles[UuidRole] = "Uuid";
+    // roles[VpnState] = "VpnState";
+    // roles[VpnType] = "VpnType";
+    // roles[RxBytesRole] = "RxBytes";
+    // roles[TxBytesRole] = "TxBytes";
+    roles[DelayModelUpdatesRole] = "DelayModelUpdates";
+
+    return roles;
 }
 
 Qt::ItemFlags NetworkModel::flags(const QModelIndex &index) const
@@ -76,15 +174,15 @@ Qt::ItemFlags NetworkModel::flags(const QModelIndex &index) const
     return Qt::ItemIsEditable; // Or whatever flags you need
 }
 
-QHash<int, QByteArray> NetworkModel::roleNames() const
-{
-    QHash<int, QByteArray> roles;
-    roles[NameRole] = "name";
-    roles[UuidRole] = "uuid";
-    roles[ConnectionPathRole] = "path";
-    roles[TypeRole] = "type";
-    return roles;
-}
+// QHash<int, QByteArray> NetworkModel::roleNames() const
+// {
+//     QHash<int, QByteArray> roles;
+//     roles[NameRole] = "name";
+//     roles[UuidRole] = "uuid";
+//     roles[ConnectionPathRole] = "path";
+//     roles[TypeRole] = "type";
+//     return roles;
+// }
 
 void NetworkModel::initialize()
 {
@@ -302,14 +400,14 @@ void NetworkModel::removeConnection(const QString &connection)
     NetworkManager::Connection::Ptr con = NetworkManager::findConnectionByUuid(connection);
     qInfo() << "deleting connection: " << con->name();
     con->remove();
-    for (int i = 0; i < m_connections.size(); ++i) {
-        if (m_connections[i]->uuid() == connection) {
-            m_connections.removeAt(i);
-            // m_networkModel->removeConnection(path);
-            removeItem(i);
-            break;
-        }
-    }
+    // for (int i = 0; i < m_connections.size(); ++i) {
+    //     if (m_connections[i]->uuid() == connection) {
+    //         m_connections.removeAt(i);
+    //         // m_networkModel->removeConnection(path);
+    //         removeItem(i);
+    //         break;
+    //     }
+    // }
 
     // removeConnectionInternal(connection);
 }

@@ -44,6 +44,7 @@ public:
         ItemUniqueNameRole,
         ItemTypeRole,
         statusChanged,
+        DelayModelUpdatesRole,
         ConnectionDetailsRole
     };
 
