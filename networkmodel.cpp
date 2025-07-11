@@ -22,7 +22,7 @@ NetworkModel::NetworkModel(QObject *parent)
     // Connect to global connection change signals
     // connect(NetworkManager::notifier(), &NetworkManager::Notifier::connectionAdded, this, &NetworkModel::addConnection);
     // connect(NetworkManager::settingsNotifier(), &NetworkManager::SettingsNotifier::connectionRemoved, this, &NetworkModel::removeConnection);
-    refresh();
+    initialize();
 }
 
 int NetworkModel::rowCount(const QModelIndex &parent) const
@@ -86,17 +86,35 @@ QHash<int, QByteArray> NetworkModel::roleNames() const
     return roles;
 }
 
-void NetworkModel::refresh()
+void NetworkModel::initialize()
 {
     beginResetModel();
-    qInfo() << "refresh";
-    m_connections = NetworkManager::listConnections();
-    qInfo() << "Wired con count:" << m_connections.count();
+    qInfo() << "Initialize: ";
+
+    // Initialize existing connections
     for (const NetworkManager::Connection::Ptr &connection : NetworkManager::listConnections()) {
-        // insertConnection(connection);
-        qInfo() << "Con name:" << connection->name() << "con type:" << connection->settings()->connectionType();
+        addConnection(connection);
     }
-    endResetModel();
+
+    initializeSignals();
+    // m_connections = NetworkManager::listConnections();
+    // qInfo() << "Wired con count:" << m_connections.count();
+    // for (const NetworkManager::Connection::Ptr &connection : NetworkManager::listConnections()) {
+    //     // insertConnection(connection);
+    //     qInfo() << "Con name:" << connection->name() << "con type:" << connection->settings()->connectionType();
+    // }
+    // endResetModel();
+}
+
+void NetworkModel::initializeSignals()
+{
+    // connect(NetworkManager::notifier(), &NetworkManager::Notifier::activeConnectionAdded, this, &NetworkModel::activeConnectionAdded, Qt::UniqueConnection);
+    // connect(NetworkManager::notifier(), &NetworkManager::Notifier::activeConnectionRemoved, this, &NetworkModel::activeConnectionRemoved, Qt::UniqueConnection);
+    connect(NetworkManager::settingsNotifier(), &NetworkManager::SettingsNotifier::connectionAdded, this, &NetworkModel::connectionAdded, Qt::UniqueConnection);
+    connect(NetworkManager::settingsNotifier(), &NetworkManager::SettingsNotifier::connectionRemoved, this, &NetworkModel::connectionRemoved, Qt::UniqueConnection);
+    // connect(NetworkManager::notifier(), &NetworkManager::Notifier::deviceAdded, this, &NetworkModel::deviceAdded, Qt::UniqueConnection);
+    // connect(NetworkManager::notifier(), &NetworkManager::Notifier::deviceRemoved, this, &NetworkModel::deviceRemoved, Qt::UniqueConnection);
+    // connect(NetworkManager::notifier(), &NetworkManager::Notifier::statusChanged, this, &NetworkModel::statusChanged, Qt::UniqueConnection);
 }
 
 struct AddConnectionData {
@@ -187,8 +205,80 @@ void NetworkModel::removeItem(int index)
 //     return false;
 // }
 
+void NetworkModel::addConnection(const NetworkManager::Connection::Ptr &connection)
+{
+    // Can't add a connection without name or uuid
+    if (connection->name().isEmpty() || connection->uuid().isEmpty()) {
+        return;
+    }
 
-void NetworkModel::addConnection(const NMVariantMapMap &map)
+    initializeSignals(connection);
+
+    NetworkManager::ConnectionSettings::Ptr settings = connection->settings();
+
+
+    // Check whether the connection is already in the model to avoid duplicates, but this shouldn't happen
+    if (m_list.contains(NetworkItemsList::Connection, connection->path())) {
+        return;
+    }
+
+    auto item = new NetworkModelItem();
+    item->setConnectionPath(connection->path());
+    item->setName(settings->id());
+    item->setType(settings->connectionType());
+    item->setUuid(settings->uuid());
+
+    insertItem(item);
+    qInfo() << "New connection" << item->name() << "added";
+}
+
+void NetworkModel::initializeSignals(const NetworkManager::Connection::Ptr &connection)
+{
+    connect(connection.data(), &NetworkManager::Connection::updated, this, &NetworkModel::connectionUpdated, Qt::UniqueConnection);
+}
+
+void NetworkModel::connectionUpdated()
+{
+    auto connectionPtr = qobject_cast<NetworkManager::Connection *>(sender());
+    if (!connectionPtr) {
+        return;
+    }
+
+    NetworkManager::ConnectionSettings::Ptr settings = connectionPtr->settings();
+    for (NetworkModelItem *item : m_list.returnItems(NetworkItemsList::Connection, connectionPtr->path())) {
+        item->setConnectionPath(connectionPtr->path());
+        item->setName(settings->id());
+        item->setType(settings->connectionType());
+        item->setUuid(settings->uuid());
+
+        updateItem(item);
+        qInfo() << "Item " << item->name() << ": connection updated";
+    }
+}
+
+void NetworkModel::connectionAdded(const QString &connection)
+{
+    NetworkManager::Connection::Ptr newConnection = NetworkManager::findConnection(connection);
+    if (newConnection) {
+        addConnection(newConnection);
+    }
+}
+
+void NetworkModel::connectionRemoved(const QString &connection)
+{
+    bool remove = false;
+    for (NetworkModelItem *item : m_list.returnItems(NetworkItemsList::Connection, connection)) {
+            remove = true;
+
+        if (remove) {
+            removeItem(item);
+            qInfo() << "Item" << item->name() << "removed completely";
+        }
+        remove = false;
+    }
+}
+
+void NetworkModel::addConnectionFromMap(const NMVariantMapMap &map)
 {
         // NetworkManager::addConnection(map);
         // beginResetModel();

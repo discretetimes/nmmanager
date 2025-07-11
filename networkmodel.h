@@ -42,6 +42,8 @@ public:
         TypeRole,
         UniRole,
         ItemUniqueNameRole,
+        ItemTypeRole,
+        statusChanged,
         ConnectionDetailsRole
     };
 
@@ -64,8 +66,7 @@ public:
     Q_INVOKABLE QVariantMap getConnectionDetails(const QString &uuid);
 
     // new functions
-    void refresh();
-    // void addConnection(NMConnection *connection);
+
 
     QHash<int, QByteArray> roleNames() const override;
 
@@ -73,13 +74,14 @@ public:
 
 Q_SIGNALS:
     void delayModelUpdatesChanged();
+    void connectionsChanged();
 
 public slots:
     /**
      * Adds a new connection
      * @map - NMVariantMapMap with connection settings
      */
-    void addConnection(const NMVariantMapMap &map);
+    void addConnectionFromMap(const NMVariantMapMap &map);
     /**
      * Removes given connection
      * @connection - d-bus path of the connection you want to edit
@@ -96,15 +98,23 @@ public slots:
     // load details, initialize, type, ipv4 widget
     void setConnection(const NetworkManager::ConnectionSettings::Ptr &connection);
 
-Q_SIGNALS:
-    void connectionsChanged();
+
+
+private Q_SLOTS:
+    void initialize();
+    void connectionUpdated();
+    void connectionAdded(const QString &connection);
+    void connectionRemoved(const QString &connection);
 
 private:
-
     bool m_delayModelUpdates = false;
     NetworkItemsList m_list;
     QQueue<QPair<ModelChangeType, NetworkModelItem *>> m_updateQueue;
 
+    // void addConnection(NMConnection *connection);
+    void addConnection(const NetworkManager::Connection::Ptr &connection);
+    void initializeSignals();
+    void initializeSignals(const NetworkManager::Connection::Ptr &connection);
     void removeConnectionInternal(const QString &connection);
     QString m_tmpConnectionPath;
     QString m_tmpConnectionUuid;

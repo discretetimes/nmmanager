@@ -152,6 +152,17 @@ NetworkManager::ConnectionSettings::ConnectionType NetworkModelItem::type() cons
     return m_type;
 }
 
+void NetworkModelItem::setType(NetworkManager::ConnectionSettings::ConnectionType type)
+{
+    if (m_type == type) {
+        return;
+    }
+
+    m_type = type;
+
+    m_changedRoles << NetworkModel::TypeRole << NetworkModel::ItemTypeRole << NetworkModel::UniRole;
+}
+
 QString NetworkModelItem::uni() const
 {
     // if (m_type == NetworkManager::ConnectionSettings::Wireless && m_uuid.isEmpty()) {
