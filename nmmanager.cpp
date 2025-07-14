@@ -97,7 +97,21 @@ void NmManager::activateConnection(const QString &connection, const QString &dev
         return;
     }
 
-    QDBusReply<QDBusObjectPath> reply = NetworkManager::activateConnection(connection, device, "");
+    // Find first wired device
+    NetworkManager::Device::Ptr wiredDevice;
+    QString devicePath;
+    for (const auto &dev : NetworkManager::networkInterfaces()) {
+        if (dev->type() == NetworkManager::Device::Ethernet) {
+            devicePath = dev->uni();
+            qInfo() << "device: "<< wiredDevice;
+            break;
+        }
+    }
+
+
+
+
+    QDBusReply<QDBusObjectPath> reply = NetworkManager::activateConnection(con->path(), devicePath, "");
 
     if (!reply.isValid()) {
         QString error = reply.error().message();

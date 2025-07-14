@@ -129,8 +129,10 @@ Page {
                 }
 
                 // deactive, if not actived
+                // var DevicePath = "enp7s18u4u2c2"
                 onClicked: {
-                    nmManager.activateConnection(ConnectionPath, DevicePath)
+                    // nmManager.activateConnection(currentConnectionUuid, DevicePath)
+                    nmManager.activateConnection(currentConnectionUuid, "enp7s18u5u3c2")
                 }
 
             }
